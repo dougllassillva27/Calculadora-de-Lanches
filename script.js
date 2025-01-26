@@ -1,3 +1,55 @@
+// Código para editar e baixar CSV
+
+function processCSV() {
+    const fileInput = document.getElementById('csvInput');
+    const file = fileInput.files[0];
+
+    if (!file) {
+        alert('Por favor, carregue um arquivo CSV.');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const csvContent = e.target.result;
+        const rows = csvContent.split('\n').map(row => row.split(';'));
+
+        // Definir as colunas a serem removidas
+        const columnsToRemove = [
+            0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 14, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37
+        ];
+
+        // Remover a primeira linha e as colunas especificadas
+        const cleanedRows = rows.slice(1).map(row => {
+            return row.filter((_, index) => {
+                return !columnsToRemove.includes(index); // Remover colunas pelo índice
+            });
+        });
+
+        // Converter de volta para CSV
+        const cleanedCSV = cleanedRows.map(row => row.join(';')).join('\n');
+        
+        // Chamar a função para baixar o CSV editado com o nome original
+        downloadCSV(cleanedCSV, file.name);
+    };
+    reader.readAsText(file);
+}
+
+function downloadCSV(content, originalFileName) {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    // Remover a extensão do arquivo original e adicionar ".csv" ao final
+    const fileNameWithoutExtension = originalFileName.replace(/\.[^/.]+$/, "");
+    link.href = url;
+    link.download = `${fileNameWithoutExtension}.csv`; // Usar o nome original com a extensão .csv
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
+// Código para editar e baixar PRN
+
 let convertedData = [];
 
 document.getElementById('fileInput').addEventListener('change', handleFile);
@@ -9,56 +61,37 @@ function handleFile(event) {
     const reader = new FileReader();
     reader.onload = function (e) {
         const data = new Uint8Array(e.target.result);
-        console.log("File data loaded:", data); // Log the file data
         const workbook = XLSX.read(data, { type: 'array' });
-        console.log("Workbook loaded:", workbook); // Log the loaded workbook
 
         const sheetName = workbook.SheetNames[0];
-        console.log("Sheet name:", sheetName); // Log the sheet name
         const sheet = workbook.Sheets[sheetName];
 
-        // Use header: 1 and set defval: '' to treat all rows as data (without treating any row as a header)
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-        console.log("Parsed JSON data:", jsonData); // Log the parsed data from the sheet
-        
-        // Now we process the rows
-        const headers = jsonData[0];  // First row will be treated as data
-        const rows = jsonData.slice(1); // Remaining rows as data
-        console.log("Processed Headers:", headers); // Log headers
-        console.log("Processed Rows:", rows); // Log rows
-        
-        // Now processing the data, starting with the first row
+
+        const headers = jsonData[0];
+        const rows = jsonData.slice(1);
+
         processExcelData(jsonData);
     };
     reader.readAsArrayBuffer(file);
 }
 
 function processExcelData(data) {
-    console.log("Raw data before processing:", data); // Log the raw data
-
-    // Não removemos a primeira linha, ela deve ser processada
-    const headers = data[0];  // Primeira linha como dados
-    const rows = data.slice(1);  // As outras linhas
-
-    console.log("Headers (first row):", headers); // Log dos dados da primeira linha
-    console.log("Rows to process:", rows); // Log das linhas restantes
+    const headers = data[0];  
+    const rows = data.slice(1);  
 
     convertedData = rows.flatMap(row => {
-        console.log("Processing row:", row); // Log cada linha sendo processada
-
         const pis = row[0];
-        const date = row[1] ? row[1].replace(/\s[A-Z]+$/, '') : null; // Remove day prefix
+        const date = row[1] ? row[1].replace(/\s[A-Z]+$/, '') : null; 
 
-        // Skip rows with "Folga" or "Feriado" in any of the time columns
         if (row.slice(2).some(cell => /Folga|Feriado|Falta|Justificado/i.test(cell))) {
-            console.log("Skipping row due to 'Folga', 'Feriado', 'Falta', or 'Justificado':", row); // Log skipped rows
             return [];
         }
 
         return headers.slice(2).map((col, index) => {
             let time = row[index + 2];
             if (time) {
-                time = time.replace(/\s*\(I\)/i, ''); // Remove "(I)" from times
+                time = time.replace(/\s*\(I\)/i, ''); 
             }
             return time ? { PIS: pis, Date: date, Time: time } : null;
         }).filter(entry => entry);
@@ -78,22 +111,21 @@ function downloadPRN() {
         return;
     }
 
-    // Get the name of the uploaded file
     const fileInput = document.getElementById('fileInput');
-    const uploadedFileName = fileInput.files[0].name.replace(/\.[^/.]+$/, ""); // Remove file extension
+    const uploadedFileName = fileInput.files[0].name.replace(/\.[^/.]+$/, ""); 
 
     const prnContent = [
         ['PIS', 'Date', 'Time'],
         ...convertedData.map(row => [row.PIS, row.Date, row.Time])
     ]
-        .map(e => e.join(';')) // Use semicolon as delimiter
-        .join('\r\n'); // PRN uses CRLF for line breaks
+        .map(e => e.join(';'))
+        .join('\r\n'); 
 
     const blob = new Blob([prnContent], { type: 'text/plain;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${uploadedFileName}.prn`; // Set the downloaded file name with the same name as the uploaded file
+    link.download = `${uploadedFileName}.prn`; 
     link.click();
     URL.revokeObjectURL(url);
 }
