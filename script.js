@@ -106,6 +106,28 @@ function downloadPRN() {
         return;
     }
 
+    const prnContent = [
+        ...convertedData.map(row => [row.PIS, row.Date, row.Time])
+    ]
+        .map(e => e.join(';')) // Separar por ponto e vírgula
+        .join('\r\n'); // Usar quebras de linha CRLF
+
+    const blob = new Blob([prnContent], { type: 'text/plain;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `convertido.prn`; // Nome fixo do arquivo baixado
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
+/* função download com nome original
+function downloadPRN() {
+    if (!convertedData.length) {
+        alert('No data to download. Please upload an Excel file first.');
+        return;
+    }
+
     const fileInput = document.getElementById('fileInput');
     const uploadedFileName = fileInput.files[0].name.replace(/\.[^/.]+$/, ""); // Nome original do arquivo
 
@@ -123,3 +145,4 @@ function downloadPRN() {
     link.click();
     URL.revokeObjectURL(url);
 }
+    */
