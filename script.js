@@ -66,35 +66,30 @@ function handleFile(event) {
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
 
-        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-
-        const headers = jsonData[0];
-        const rows = jsonData.slice(1);
-
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }); // Tratar tudo como dados
         processExcelData(jsonData);
     };
     reader.readAsArrayBuffer(file);
 }
 
 function processExcelData(data) {
-    const headers = data[0];  
-    const rows = data.slice(1);  
+    // Processar todas as linhas como dados (sem headers)
+    convertedData = data.flatMap(row => {
+        const pis = row[0]; // Primeira coluna como PIS
+        const date = row[1] ? row[1].replace(/\s[A-Z]+$/, '') : null; // Segunda coluna como Data
 
-    convertedData = rows.flatMap(row => {
-        const pis = row[0];
-        const date = row[1] ? row[1].replace(/\s[A-Z]+$/, '') : null; 
-
+        // Ignorar linhas que contenham "Folga", "Feriado", etc.
         if (row.slice(2).some(cell => /Folga|Feriado|Falta|Justificado/i.test(cell))) {
             return [];
         }
 
-        return headers.slice(2).map((col, index) => {
-            let time = row[index + 2];
+        // Processar cada horário restante
+        return row.slice(2).map((time, index) => {
             if (time) {
-                time = time.replace(/\s*\(I\)/i, ''); 
+                time = time.replace(/\s*\(I\)/i, ''); // Remover "(I)" dos horários
             }
             return time ? { PIS: pis, Date: date, Time: time } : null;
-        }).filter(entry => entry);
+        }).filter(entry => entry); // Remover entradas nulas
     });
 
     displayData(convertedData);
@@ -112,20 +107,19 @@ function downloadPRN() {
     }
 
     const fileInput = document.getElementById('fileInput');
-    const uploadedFileName = fileInput.files[0].name.replace(/\.[^/.]+$/, ""); 
+    const uploadedFileName = fileInput.files[0].name.replace(/\.[^/.]+$/, ""); // Nome original do arquivo
 
     const prnContent = [
-        ['PIS', 'Date', 'Time'],
         ...convertedData.map(row => [row.PIS, row.Date, row.Time])
     ]
-        .map(e => e.join(';'))
-        .join('\r\n'); 
+        .map(e => e.join(';')) // Separar por ponto e vírgula
+        .join('\r\n'); // Usar quebras de linha CRLF
 
     const blob = new Blob([prnContent], { type: 'text/plain;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${uploadedFileName}.prn`; 
+    link.download = `${uploadedFileName}.prn`; // Nome do arquivo baixado
     link.click();
     URL.revokeObjectURL(url);
 }
