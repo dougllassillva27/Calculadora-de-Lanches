@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Douglas Silva">
-    <title>Ferramenta de Edição de Arquivos</title>
+    <title>Ferramenta de Edição e Conversão</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico?v=1" />
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -12,22 +12,13 @@
 </head>
 <body>
     <div class="container">
-        <h1>Ferramenta de Edição de Arquivos</h1>
+        <h1>Ferramenta de Edição e Conversão</h1>
 
-        <!-- Botão e funcionalidade para editar CSV -->
+        <!-- Botão único para processar -->
         <section>
-            <h2>Editar .CSV</h2>
-            <input type="file" id="csvInput" accept=".csv" />
-            <button onclick="processCSV()">Processar e baixar .CSV</button>
-        </section><br>
-
-        <hr>
-
-        <!-- Botão e funcionalidade para editar e baixar PRN -->
-        <section>
-            <h2>Converter para .PRN</h2>
+            <h2>Editar e Converter Arquivo</h2>
             <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" />
-            <button onclick="downloadPRN()">Processar e baixar .PRN</button>
+            <button onclick="processFile()">Processar e baixar .PRN</button>
             <div class="output" id="output"></div>
         </section>
     </div>
