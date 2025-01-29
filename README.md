@@ -1,0 +1,3 @@
+- Utiliza uma planilha pré-definida do Excel em .CSV
+- Edita o arquivo .CSV removendo as colunas indesejadas
+- Salva o arquivo editado e transforma em .PRN para posterior importação
