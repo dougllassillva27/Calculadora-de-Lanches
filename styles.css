@@ -199,6 +199,27 @@ footer a:hover {
     box-sizing: border-box; /* Garante que o padding não aumente a largura */
   }
 
+  #filterButtonContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px; /* Adiciona espaço abaixo do botão de filtro */
+  }
+
+  #filterButtonContainer button {
+    width: 100%;
+    margin-left: 0 !important;
+  }
+
+  .btn-filter,
+  .btn-clear-filter {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+    margin-top: 10px; /* Adiciona espaço acima do botão limpar filtro */
+  }
+
   .actions {
     flex-direction: column; /* Botões de ações um abaixo do outro */
     gap: 10px;
