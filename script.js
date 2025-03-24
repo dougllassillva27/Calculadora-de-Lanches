@@ -165,6 +165,7 @@ function processFile() {
 function calculateLunchTimes(rows) {
   const results = {};
 
+  // Agrupa as batidas por PIS e data
   rows.forEach((row) => {
     const [pis, date, time] = row;
     if (!results[pis]) {
@@ -178,6 +179,7 @@ function calculateLunchTimes(rows) {
 
   const lunchTimes = {};
 
+  // Calcula os lanches para cada PIS e data
   for (const pis in results) {
     lunchTimes[pis] = {};
     for (const date in results[pis]) {
