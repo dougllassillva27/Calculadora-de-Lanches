@@ -18,6 +18,7 @@ body {
   text-align: center;
   max-width: 1000px;
   width: 100%;
+  box-sizing: border-box; /* Garante que o padding seja incluído na largura total */
 }
 
 h1 {
@@ -47,6 +48,8 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  width: 100%; /* Ocupa toda a largura disponível */
+  box-sizing: border-box; /* Garante que o padding seja incluído na largura total */
 }
 
 .custom-file-upload:hover {
@@ -69,6 +72,8 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  width: 100%; /* Ocupa toda a largura disponível */
+  box-sizing: border-box; /* Garante que o padding seja incluído na largura total */
 }
 
 button:hover {
@@ -175,6 +180,7 @@ tr:hover {
   button {
     width: 100%; /* Botões ocupam toda a largura */
     justify-content: center;
+    box-sizing: border-box; /* Garante que o padding seja incluído na largura total */
   }
 
   .actions {
