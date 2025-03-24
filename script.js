@@ -246,7 +246,15 @@ function displayResults(results) {
   const resultsDiv = document.getElementById('results');
   resultsDiv.innerHTML = '';
 
-  for (const pis in results) {
+  // Ordena os PISs alfabeticamente com base no nome
+  const sortedPisList = Object.keys(results).sort((a, b) => {
+    const nameA = pisToNameMap[a] || `PIS: ${a}`;
+    const nameB = pisToNameMap[b] || `PIS: ${b}`;
+    return nameA.localeCompare(nameB); // Ordenação alfabética dos nomes
+  });
+
+  // Itera sobre os PISs já ordenados
+  for (const pis of sortedPisList) {
     const name = pisToNameMap[pis] || `PIS: ${pis}`; // Usa o nome se existir, caso contrário, exibe o PIS
     const pisDiv = document.createElement('div');
     pisDiv.innerHTML = `<h3>${name}</h3>`; // Exibe o nome do funcionário
