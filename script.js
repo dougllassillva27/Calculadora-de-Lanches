@@ -21,6 +21,31 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
+// Lista de funcionários
+const pisToNameMap = {
+  12647941701: 'ADRIANA SILVA GERTNER',
+  12835237692: 'ALESSANDRA MACHADO DO NASCIMENTO',
+  13442452790: 'ALINE EMANUELA DE ALMEIDA',
+  21415565971: 'BEATRIZ ALONSO CALZADO',
+  20945568856: 'CARLOS BISCAIA NETO',
+  21234132631: 'ELIZANDRA DE MEIRELES GUILHERME',
+  4254159021: 'ERIKA KATIANE OLIVEIRA RODRIGUES',
+  3924187037: 'GUILHERME DA CRUZ SANTOS',
+  16244765681: 'JENNIFER DANIELLE DE JESUS',
+  16271015930: 'JESSICA BITTENCOURT MORAES',
+  2154541038: 'JONATAN SANTOS SOUZA',
+  27090405520: 'JULIA GRAS DE OLIVEIRA ANTUNES',
+  12776657503: 'JULY ANNA LOUISE GONÇALVES',
+  12604362696: 'KELEN FABIANA SANTOS DO NASCIMENTO',
+  3678545033: 'LUCAS ALEX DE BORBA',
+  58771778004: 'MARIA HELENA DOS SANTOS RAMOS',
+  6443119916: 'MARIA JANETE RITTER',
+  2488909050: 'SILVANA VIDAL ALVES',
+  13024990681: 'VERA LUCIA ROSA',
+  16629319428: 'WATUZI MACEDO SOARES',
+};
+
 // Função para exibir o nome do arquivo carregado e limpar a tela ao carregar um novo arquivo
 function displayFileName(inputId, displayId) {
   const fileInput = document.getElementById(inputId);
@@ -199,8 +224,9 @@ function calculateLunchTimes(rows) {
 }
 
 function calculateTimeDifference(time1, time2) {
-  if (!time1 || !time2) {
-    return 'Não bateu'; // Se alguma batida estiver faltando
+  // Verifica se algum dos tempos é '-' ou está vazio
+  if (!time1 || !time2 || time1 === '-' || time2 === '-') {
+    return 'Não bateu'; // Retorna "Não bateu" se algum dos tempos estiver faltando ou for '-'
   }
 
   const [h1, m1] = time1.split(':').map(Number);
@@ -221,22 +247,23 @@ function displayResults(results) {
   resultsDiv.innerHTML = '';
 
   for (const pis in results) {
+    const name = pisToNameMap[pis] || `PIS: ${pis}`; // Usa o nome se existir, caso contrário, exibe o PIS
     const pisDiv = document.createElement('div');
-    pisDiv.innerHTML = `<h3>PIS: ${pis}</h3>`;
+    pisDiv.innerHTML = `<h3>${name}</h3>`; // Exibe o nome do funcionário
     resultsDiv.appendChild(pisDiv);
 
     const table = document.createElement('table');
     table.innerHTML = `
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Lanche da Manhã</th>
-                    <th>Lanche da Tarde</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        `;
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Lanche da Manhã</th>
+          <th>Lanche da Tarde</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    `;
 
     const tbody = table.querySelector('tbody');
 
@@ -244,10 +271,10 @@ function displayResults(results) {
       const { morningLunch, afternoonLunch } = results[pis][date];
       const row = document.createElement('tr');
       row.innerHTML = `
-                <td>${date}</td>
-                <td class="${isLunchTooLong(morningLunch) ? 'highlight-red' : ''}">${morningLunch}</td>
-                <td class="${isLunchTooLong(afternoonLunch) ? 'highlight-red' : ''}">${afternoonLunch}</td>
-            `;
+        <td>${date}</td>
+        <td class="${isLunchTooLong(morningLunch) ? 'highlight-red' : ''}">${morningLunch}</td>
+        <td class="${isLunchTooLong(afternoonLunch) ? 'highlight-red' : ''}">${afternoonLunch}</td>
+      `;
       tbody.appendChild(row);
     }
 
