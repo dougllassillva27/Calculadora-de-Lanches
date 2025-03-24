@@ -213,3 +213,36 @@ footer a:hover {
     padding: 8px; /* Reduz o padding das células */
   }
 }
+.btn-filter {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.btn-filter:hover {
+  background-color: #f57c00;
+}
+
+.highlight-red {
+  background-color: #ffcdd2;
+  font-weight: bold;
+}
+.btn-clear-filter {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.btn-clear-filter:hover {
+  background-color: #f57c00;
+}

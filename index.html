@@ -70,6 +70,17 @@ SOFTWARE.
           </button>
         </div>
         <p id="calculatorFileName" class="file-name"></p>
+        <!-- Substitua a div#filterButtonContainer por esta versão atualizada -->
+        <div id="filterButtonContainer" style="display: none; text-align: center; margin: 10px 0">
+          <button onclick="filterAbove15()" class="btn-filter">
+            <i class="fas fa-filter"></i>
+            Filtrar acima de 15min
+          </button>
+          <button onclick="clearFilter()" class="btn-clear-filter" style="margin-left: 10px">
+            <i class="fas fa-times"></i>
+            Limpar filtro
+          </button>
+        </div>
         <!-- Exibe o nome do arquivo carregado -->
         <div id="loading" class="loading" style="display: none">
           <i class="fas fa-spinner fa-spin"></i>

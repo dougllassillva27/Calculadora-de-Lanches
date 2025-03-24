@@ -22,6 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+// Adicione esta variável no início do arquivo para controlar o estado do filtro
+let isFiltered = false;
+
 // Lista de funcionários
 const pisToNameMap = {
   12647941701: 'ADRIANA SILVA GERTNER',
@@ -241,10 +244,13 @@ function calculateTimeDifference(time1, time2) {
 
   return `${hours}h ${minutes}m`;
 }
-
+// Modifique a função displayResults para mostrar o botão após processar
 function displayResults(results) {
   const resultsDiv = document.getElementById('results');
   resultsDiv.innerHTML = '';
+
+  // Mostra o botão de filtro
+  toggleFilterButton(true);
 
   // Ordena os PISs alfabeticamente com base no nome
   const sortedPisList = Object.keys(results).sort((a, b) => {
@@ -299,6 +305,7 @@ function isLunchTooLong(lunchTime) {
   return totalMinutes > 15; // Retorna true se o lanche for maior que 15 minutos
 }
 
+// Modifique a função clearResults para também limpar o filtro
 function clearResults() {
   const resultsDiv = document.getElementById('results');
   const calculatorFileName = document.getElementById('calculatorFileName');
@@ -307,11 +314,17 @@ function clearResults() {
   // Limpa os resultados da tabela
   resultsDiv.innerHTML = '';
 
+  // Oculta o botão de filtro
+  toggleFilterButton(false);
+
   // Limpa o nome do arquivo exibido na seção da calculadora de lanches
   calculatorFileName.textContent = '';
 
   // Limpa o nome do arquivo exibido na seção de conversão de arquivos
   converterFileName.textContent = '';
+
+  // Reseta o estado do filtro
+  isFiltered = false;
 }
 
 function exportToCSV() {
@@ -342,4 +355,64 @@ function exportToCSV() {
   link.download = 'lanches.csv';
   link.click();
   URL.revokeObjectURL(url);
+}
+
+// Adicione esta função para mostrar/ocultar o botão de filtro
+function toggleFilterButton(show) {
+  const filterButtonContainer = document.getElementById('filterButtonContainer');
+  filterButtonContainer.style.display = show ? 'block' : 'none';
+}
+
+// Adicione esta função para filtrar os resultados
+function filterAbove15() {
+  const tables = document.querySelectorAll('table');
+  let hasResults = false;
+  isFiltered = true;
+
+  tables.forEach((table) => {
+    const pisDiv = table.previousElementSibling;
+    let hasVisibleRows = false;
+    const rows = table.querySelectorAll('tbody tr');
+
+    rows.forEach((row) => {
+      const morningCell = row.querySelector('td:nth-child(2)');
+      const afternoonCell = row.querySelector('td:nth-child(3)');
+
+      const showRow = isLunchTooLong(morningCell.textContent) || isLunchTooLong(afternoonCell.textContent);
+
+      row.style.display = showRow ? '' : 'none';
+      if (showRow) {
+        hasVisibleRows = true;
+        hasResults = true;
+      }
+    });
+
+    // Oculta toda a seção do funcionário se não tiver linhas visíveis
+    pisDiv.style.display = hasVisibleRows ? '' : 'none';
+    table.style.display = hasVisibleRows ? '' : 'none';
+  });
+
+  if (!hasResults) {
+    alert('Nenhum lanche acima de 15 minutos encontrado.');
+    clearFilter(); // Limpa o filtro se não houver resultados
+  }
+}
+
+// Adicione esta nova função para limpar o filtro
+function clearFilter() {
+  if (!isFiltered) return;
+
+  const tables = document.querySelectorAll('table');
+  tables.forEach((table) => {
+    const pisDiv = table.previousElementSibling;
+    pisDiv.style.display = '';
+    table.style.display = '';
+
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach((row) => {
+      row.style.display = '';
+    });
+  });
+
+  isFiltered = false;
 }
