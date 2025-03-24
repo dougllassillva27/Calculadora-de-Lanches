@@ -49,9 +49,3 @@ Uma aplicação web que converte arquivos de ponto (.csv, .xlsx) para formato .p
 ## Instalação
 
 Nenhuma instalação necessária. Basta abrir o arquivo `index.html` em qualquer navegador.
-
-## Capturas de Tela
-
-_(Adicione screenshots da aplicação aqui)_
-
-## Estrutura do Projeto
