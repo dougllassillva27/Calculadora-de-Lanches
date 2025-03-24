@@ -241,7 +241,17 @@ function isLunchTooLong(lunchTime) {
 
 function clearResults() {
   const resultsDiv = document.getElementById('results');
+  const calculatorFileName = document.getElementById('calculatorFileName');
+  const converterFileName = document.getElementById('converterFileName');
+
+  // Limpa os resultados da tabela
   resultsDiv.innerHTML = '';
+
+  // Limpa o nome do arquivo exibido na seção da calculadora de lanches
+  calculatorFileName.textContent = '';
+
+  // Limpa o nome do arquivo exibido na seção de conversão de arquivos
+  converterFileName.textContent = '';
 }
 
 function exportToCSV() {
