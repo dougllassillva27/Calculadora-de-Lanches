@@ -154,6 +154,24 @@ tr:hover {
   color: #555;
   font-style: italic;
 }
+/* Estilo do footer */
+#footer {
+  background-color: none;
+  text-align: center;
+  padding: 5px;
+  width: 97%;
+  height: 25px;
+  font-size: 18px;
+  position: relative;
+  margin-top: auto; /* Garante que o footer fique no final quando não houver resultados */
+}
+footer a {
+  text-decoration: none;
+  color: #007bff;
+}
+footer a:hover {
+  text-decoration: underline;
+}
 
 /* Estilos para dispositivos móveis */
 @media (max-width: 600px) {
