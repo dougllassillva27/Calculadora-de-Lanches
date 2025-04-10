@@ -32,10 +32,10 @@ $base = '/Calculadora-de-Lanches'; // ajuste para o caminho visível no navegado
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Conversor de Arquivos e Calculadora de Lanches" />
+    <meta name="description" content="Calculadora de Lanches" />
     <meta name="keywords" content="converter, .csv, lanche, horas, ponto" />
     <meta name="author" content="Douglas Silva" />
-    <title>Conversor de Arquivos e Calculadora de Lanches</title>
+    <title>Calculadora de Lanches</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico?v=1" />
     <link rel="stylesheet" href="<?= versao("$base/styles.css") ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
@@ -43,24 +43,6 @@ $base = '/Calculadora-de-Lanches'; // ajuste para o caminho visível no navegado
   </head>
   <body>
     <div class="container">
-      <!-- Seção de Conversão de Arquivos -->
-      <div class="converter-section">
-        <h1>Conversor de Arquivos</h1>
-        <div class="upload-section">
-          <label for="converterFileInput" class="custom-file-upload">
-            <i class="fas fa-upload"></i>
-            Escolher Arquivo
-          </label>
-          <input type="file" id="converterFileInput" accept=".csv, .xlsx" />
-          <button onclick="convertFile()">
-            <i class="fas fa-file-export"></i>
-            Converter e Baixar
-          </button>
-        </div>
-        <p id="converterFileName" class="file-name"></p>
-        <!-- Exibe o nome do arquivo carregado -->
-      </div>
-
       <!-- Seção da Calculadora de Lanches -->
       <div class="calculator-section">
         <h1>Calculadora de Lanches</h1>
@@ -69,14 +51,13 @@ $base = '/Calculadora-de-Lanches'; // ajuste para o caminho visível no navegado
             <i class="fas fa-upload"></i>
             Escolher Arquivo
           </label>
-          <input type="file" id="fileInput" accept=".prn, .txt" />
+          <input type="file" id="fileInput" accept=".prn, .txt, .csv, .xlsx" />
           <button onclick="processFile()">
             <i class="fas fa-play"></i>
-            Calcular lanches
+            Calcular Lanches
           </button>
         </div>
         <p id="calculatorFileName" class="file-name"></p>
-        <!-- Substitua a div#filterButtonContainer por esta versão atualizada -->
         <div id="filterButtonContainer" style="display: none; text-align: center; margin: 10px 0">
           <button onclick="filterAbove15()" class="btn-filter">
             <i class="fas fa-filter"></i>
@@ -87,7 +68,6 @@ $base = '/Calculadora-de-Lanches'; // ajuste para o caminho visível no navegado
             Limpar filtro
           </button>
         </div>
-        <!-- Exibe o nome do arquivo carregado -->
         <div id="loading" class="loading" style="display: none">
           <i class="fas fa-spinner fa-spin"></i>
           Processando...
@@ -113,5 +93,5 @@ $base = '/Calculadora-de-Lanches'; // ajuste para o caminho visível no navegado
       </footer>
     </div>
     <script src="<?= versao("$base/script.js") ?>"></script>
-    </body>
+  </body>
 </html>

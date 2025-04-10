@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-// Adicione esta variável no início do arquivo para controlar o estado do filtro
+// Controle do estado do filtro
 let isFiltered = false;
 
 // Lista de funcionários
@@ -49,112 +49,46 @@ const pisToNameMap = {
   16629319428: 'WATUZI MACEDO SOARES',
 };
 
-// Função para exibir o nome do arquivo carregado e limpar a tela ao carregar um novo arquivo
+// Exibe o nome do arquivo carregado e limpa a tela ao carregar um novo arquivo
 function displayFileName(inputId, displayId) {
   const fileInput = document.getElementById(inputId);
   const fileNameDisplay = document.getElementById(displayId);
-  const resultsDiv = document.getElementById('results'); // Elemento que exibe os resultados
+  const resultsDiv = document.getElementById('results');
 
-  fileInput.addEventListener('change', function () {
+  // Remove qualquer listener existente para evitar duplicação
+  fileInput.removeEventListener('change', handleFileChange);
+
+  // Define a função de manipulação do evento
+  function handleFileChange() {
     if (fileInput.files.length > 0) {
       fileNameDisplay.textContent = `Arquivo carregado: ${fileInput.files[0].name}`;
-      // Limpa a tela ao carregar um novo arquivo
-      resultsDiv.innerHTML = '';
+      resultsDiv.innerHTML = ''; // Limpa os resultados ao carregar um novo arquivo
     } else {
       fileNameDisplay.textContent = '';
     }
-  });
+  }
+
+  // Adiciona o listener ao input
+  fileInput.addEventListener('change', handleFileChange);
+
+  // Executa imediatamente caso já tenha um arquivo selecionado ao carregar a página
+  if (fileInput.files.length > 0) {
+    handleFileChange();
+  }
 }
 
-// Exibir o nome do arquivo na seção da calculadora de lanches
+// Chama a função para configurar o listener
 displayFileName('fileInput', 'calculatorFileName');
 
-// Exibir o nome do arquivo na seção de conversão de arquivos
-displayFileName('converterFileInput', 'converterFileName');
-
-// Função de conversão de arquivos
-function convertFile() {
-  const fileInput = document.getElementById('converterFileInput');
-  const file = fileInput.files[0];
-  const fileNameDisplay = document.getElementById('converterFileName'); // Elemento que exibe o nome do arquivo
-
-  if (!file) {
-    alert('Por favor, carregue um arquivo.');
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = function (e) {
-    const content = e.target.result;
-    let rows;
-
-    // Verificar se é CSV ou Excel
-    if (file.name.endsWith('.csv')) {
-      rows = content.split('\n').map((row) => row.split(';'));
-    } else {
-      const data = new Uint8Array(content);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-    }
-
-    // Processar arquivo: remover colunas
-    const columnsToRemove = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 14, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37];
-
-    const cleanedRows = rows.slice(1).map((row) => row.filter((_, index) => !columnsToRemove.includes(index)));
-
-    // Converter os dados para PRN
-    const convertedData = cleanedRows.flatMap((row) => {
-      const pis = row[0];
-      const date = row[1] ? row[1].replace(/\s[A-Z]+$/, '') : null;
-
-      if (row.slice(2).some((cell) => /Folga|Feriado|Falta|Justificado/i.test(cell))) {
-        return [];
-      }
-
-      return row
-        .slice(2)
-        .map((time, index) => {
-          if (time) {
-            time = time.replace(/\s*\(I\)/i, '');
-          }
-          return time ? { PIS: pis, Date: date, Time: time } : null;
-        })
-        .filter((entry) => entry);
-    });
-
-    // Preparar conteúdo do PRN
-    const prnContent = convertedData.map((row) => [row.PIS, row.Date, row.Time].join(';')).join('\r\n');
-
-    // Baixar arquivo PRN
-    const fileName = file.name.replace(/\.[^/.]+$/, '') + '.prn'; // Remove a extensão original e adiciona .prn
-    downloadPRN(prnContent, fileName);
-
-    // Limpar o nome do arquivo exibido após o download
-    fileNameDisplay.textContent = '';
-  };
-
-  if (file.name.endsWith('.csv')) {
-    reader.readAsText(file);
-  } else {
-    reader.readAsArrayBuffer(file);
-  }
+// Função para detectar o separador do CSV
+function detectSeparator(content) {
+  const firstLine = content.split('\n')[0];
+  if (firstLine.includes(';')) return ';';
+  if (firstLine.includes(',')) return ',';
+  return ';'; // Padrão caso não detecte
 }
 
-// Função para baixar o arquivo PRN
-function downloadPRN(content, fileName) {
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName; // Usa o nome do arquivo fornecido
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-// Função de processamento de arquivo para a calculadora de lanches
+// Função principal que converte e calcula os lanches
 function processFile() {
   const fileInput = document.getElementById('fileInput');
   const file = fileInput.files[0];
@@ -166,34 +100,108 @@ function processFile() {
     return;
   }
 
-  // Mostra o ícone de carregamento
-  loading.style.display = 'block';
+  // Atualiza o nome do arquivo imediatamente antes de processar
+  const fileNameDisplay = document.getElementById('calculatorFileName');
+  fileNameDisplay.textContent = `Arquivo carregado: ${file.name}`;
 
+  loading.style.display = 'block';
   const reader = new FileReader();
 
   reader.onload = function (e) {
     const content = e.target.result;
 
-    // Verifica se o arquivo é .prn ou .txt
-    if (file.name.endsWith('.prn') || file.name.endsWith('.txt')) {
-      const rows = content.split('\n').map((row) => row.split(';')); // Divide as linhas e colunas por ";"
-      const results = calculateLunchTimes(rows);
-      displayResults(results);
-    } else {
-      alert('Formato de arquivo não suportado. Por favor, carregue um arquivo .prn ou .txt.');
+    try {
+      // Se for .csv ou .xlsx, converte para .prn em memória
+      if (file.name.toLowerCase().endsWith('.csv')) {
+        const separator = detectSeparator(content);
+        const rows = content.split('\n').map((row) => row.split(separator));
+
+        // Processo de conversão para .prn (em memória)
+        const columnsToRemove = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 14, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37];
+        const cleanedRows = rows.slice(1).map((row) => row.filter((_, index) => !columnsToRemove.includes(index)));
+
+        const convertedData = cleanedRows.flatMap((row) => {
+          const pis = row[0];
+          const date = row[1] ? row[1].replace(/\s[A-Z]+$/, '') : null;
+
+          if (row.slice(2).some((cell) => /Folga|Feriado|Falta|Justificado/i.test(cell))) {
+            return [];
+          }
+
+          return row
+            .slice(2)
+            .map((time, index) => {
+              if (time) {
+                time = time.replace(/\s*\(I\)/i, '');
+              }
+              return time ? [pis, date, time] : null;
+            })
+            .filter((entry) => entry);
+        });
+
+        // Calcula os lanches com os dados convertidos
+        const results = calculateLunchTimes(convertedData);
+        displayResults(results);
+      } else if (file.name.toLowerCase().endsWith('.xlsx')) {
+        const data = new Uint8Array(content);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+        // Processo de conversão para .prn (em memória)
+        const columnsToRemove = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 14, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37];
+        const cleanedRows = rows.slice(1).map((row) => row.filter((_, index) => !columnsToRemove.includes(index)));
+
+        const convertedData = cleanedRows.flatMap((row) => {
+          const pis = row[0];
+          const date = row[1] ? row[1].replace(/\s[A-Z]+$/, '') : null;
+
+          if (row.slice(2).some((cell) => /Folga|Feriado|Falta|Justificado/i.test(cell))) {
+            return [];
+          }
+
+          return row
+            .slice(2)
+            .map((time, index) => {
+              if (time) {
+                time = time.toString().replace(/\s*\(I\)/i, '');
+              }
+              return time ? [pis, date, time] : null;
+            })
+            .filter((entry) => entry);
+        });
+
+        // Calcula os lanches com os dados convertidos
+        const results = calculateLunchTimes(convertedData);
+        displayResults(results);
+      }
+      // Se for .prn ou .txt, processa diretamente
+      else if (file.name.toLowerCase().endsWith('.prn') || file.name.toLowerCase().endsWith('.txt')) {
+        const rows = content.split('\n').map((row) => row.split(';'));
+        const results = calculateLunchTimes(rows);
+        displayResults(results);
+      } else {
+        alert('Formato de arquivo não suportado. Use .csv, .xlsx, .prn ou .txt.');
+      }
+    } catch (error) {
+      console.error('Erro ao processar o arquivo:', error);
+      alert('Erro ao processar o arquivo. Verifique o formato e tente novamente.');
     }
 
-    // Esconde o ícone de carregamento
     loading.style.display = 'none';
   };
 
-  reader.readAsText(file);
+  if (file.name.toLowerCase().endsWith('.xlsx')) {
+    reader.readAsArrayBuffer(file);
+  } else {
+    reader.readAsText(file);
+  }
 }
 
 function calculateLunchTimes(rows) {
   const results = {};
 
-  // Agrupa as batidas por PIS e data
   rows.forEach((row) => {
     const [pis, date, time] = row;
     if (!results[pis]) {
@@ -207,7 +215,6 @@ function calculateLunchTimes(rows) {
 
   const lunchTimes = {};
 
-  // Calcula os lanches para cada PIS e data
   for (const pis in results) {
     lunchTimes[pis] = {};
     for (const date in results[pis]) {
@@ -217,7 +224,6 @@ function calculateLunchTimes(rows) {
         const afternoonLunch = calculateTimeDifference(times[6], times[5]);
         lunchTimes[pis][date] = { morningLunch, afternoonLunch };
       } else {
-        // Se faltarem batidas, marca como "Não bateu"
         lunchTimes[pis][date] = { morningLunch: 'Não bateu', afternoonLunch: 'Não bateu' };
       }
     }
@@ -227,9 +233,8 @@ function calculateLunchTimes(rows) {
 }
 
 function calculateTimeDifference(time1, time2) {
-  // Verifica se algum dos tempos é '-' ou está vazio
   if (!time1 || !time2 || time1 === '-' || time2 === '-') {
-    return 'Não bateu'; // Retorna "Não bateu" se algum dos tempos estiver faltando ou for '-'
+    return 'Não bateu';
   }
 
   const [h1, m1] = time1.split(':').map(Number);
@@ -244,26 +249,23 @@ function calculateTimeDifference(time1, time2) {
 
   return `${hours}h ${minutes}m`;
 }
-// Modifique a função displayResults para mostrar o botão após processar
+
 function displayResults(results) {
   const resultsDiv = document.getElementById('results');
   resultsDiv.innerHTML = '';
 
-  // Mostra o botão de filtro
   toggleFilterButton(true);
 
-  // Ordena os PISs alfabeticamente com base no nome
   const sortedPisList = Object.keys(results).sort((a, b) => {
     const nameA = pisToNameMap[a] || `PIS: ${a}`;
     const nameB = pisToNameMap[b] || `PIS: ${b}`;
-    return nameA.localeCompare(nameB); // Ordenação alfabética dos nomes
+    return nameA.localeCompare(nameB);
   });
 
-  // Itera sobre os PISs já ordenados
   for (const pis of sortedPisList) {
-    const name = pisToNameMap[pis] || `PIS: ${pis}`; // Usa o nome se existir, caso contrário, exibe o PIS
+    const name = pisToNameMap[pis] || `PIS: ${pis}`;
     const pisDiv = document.createElement('div');
-    pisDiv.innerHTML = `<h3>${name}</h3>`; // Exibe o nome do funcionário
+    pisDiv.innerHTML = `<h3>${name}</h3>`;
     resultsDiv.appendChild(pisDiv);
 
     const table = document.createElement('table');
@@ -297,33 +299,21 @@ function displayResults(results) {
 }
 
 function isLunchTooLong(lunchTime) {
-  if (lunchTime === 'Não bateu') return false; // Ignora se não bateu
+  if (lunchTime === 'Não bateu') return false;
 
   const [hours, minutes] = lunchTime.split('h ');
   const totalMinutes = parseInt(hours) * 60 + parseInt(minutes.replace('m', ''));
 
-  return totalMinutes > 15; // Retorna true se o lanche for maior que 15 minutos
+  return totalMinutes > 15;
 }
 
-// Modifique a função clearResults para também limpar o filtro
 function clearResults() {
   const resultsDiv = document.getElementById('results');
   const calculatorFileName = document.getElementById('calculatorFileName');
-  const converterFileName = document.getElementById('converterFileName');
 
-  // Limpa os resultados da tabela
   resultsDiv.innerHTML = '';
-
-  // Oculta o botão de filtro
   toggleFilterButton(false);
-
-  // Limpa o nome do arquivo exibido na seção da calculadora de lanches
   calculatorFileName.textContent = '';
-
-  // Limpa o nome do arquivo exibido na seção de conversão de arquivos
-  converterFileName.textContent = '';
-
-  // Reseta o estado do filtro
   isFiltered = false;
 }
 
@@ -357,13 +347,11 @@ function exportToCSV() {
   URL.revokeObjectURL(url);
 }
 
-// Adicione esta função para mostrar/ocultar o botão de filtro
 function toggleFilterButton(show) {
   const filterButtonContainer = document.getElementById('filterButtonContainer');
   filterButtonContainer.style.display = show ? 'block' : 'none';
 }
 
-// Adicione esta função para filtrar os resultados
 function filterAbove15() {
   const tables = document.querySelectorAll('table');
   let hasResults = false;
@@ -387,18 +375,16 @@ function filterAbove15() {
       }
     });
 
-    // Oculta toda a seção do funcionário se não tiver linhas visíveis
     pisDiv.style.display = hasVisibleRows ? '' : 'none';
     table.style.display = hasVisibleRows ? '' : 'none';
   });
 
   if (!hasResults) {
     alert('Nenhum lanche acima de 15 minutos encontrado.');
-    clearFilter(); // Limpa o filtro se não houver resultados
+    clearFilter();
   }
 }
 
-// Adicione esta nova função para limpar o filtro
 function clearFilter() {
   if (!isFiltered) return;
 
