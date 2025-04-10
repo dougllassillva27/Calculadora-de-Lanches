@@ -47,6 +47,7 @@ const pisToNameMap = {
   2488909050: 'SILVANA VIDAL ALVES',
   13024990681: 'VERA LUCIA ROSA',
   16629319428: 'WATUZI MACEDO SOARES',
+  70798693231: 'KEIYELYN VANESSA SUCRE MORA',
 };
 
 // Configura a exibição do nome do arquivo carregado e limpa os resultados ao trocar de arquivo
@@ -147,10 +148,10 @@ function processFile() {
         const results = calculateLunchTimes(convertedData);
         displayResults(results);
       }
-      // Processa arquivos .xlsx
-      else if (file.name.toLowerCase().endsWith('.xlsx')) {
+      // Processa arquivos .xlsx ou .xls
+      else if (file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls')) {
         const data = new Uint8Array(content); // Converte o conteúdo para array de bytes
-        const workbook = XLSX.read(data, { type: 'array' }); // Lê o arquivo Excel
+        const workbook = XLSX.read(data, { type: 'array' }); // Lê o arquivo Excel (.xlsx ou .xls)
         const sheetName = workbook.SheetNames[0]; // Pega a primeira planilha
         const sheet = workbook.Sheets[sheetName];
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }); // Converte para array
@@ -189,7 +190,7 @@ function processFile() {
         const results = calculateLunchTimes(rows); // Calcula os tempos
         displayResults(results); // Exibe os resultados
       } else {
-        alert('Formato de arquivo não suportado. Use .csv, .xlsx, .prn ou .txt.'); // Alerta para formatos inválidos
+        alert('Formato de arquivo não suportado. Use .csv, .xls, .xlsx, .prn ou .txt.'); // Alerta para formatos inválidos
       }
     } catch (error) {
       console.error('Erro ao processar o arquivo:', error); // Loga o erro no console
@@ -200,8 +201,8 @@ function processFile() {
   };
 
   // Lê o arquivo no formato apropriado
-  if (file.name.toLowerCase().endsWith('.xlsx')) {
-    reader.readAsArrayBuffer(file); // Lê como array de bytes para .xlsx
+  if (file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls')) {
+    reader.readAsArrayBuffer(file); // Lê como array de bytes para .xlsx e .xls
   } else {
     reader.readAsText(file); // Lê como texto para outros formatos
   }

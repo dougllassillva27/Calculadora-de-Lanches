@@ -51,7 +51,7 @@ $base = '/Calculadora-de-Lanches'; // ajuste para o caminho visível no navegado
             <i class="fas fa-upload"></i>
             Escolher Arquivo
           </label>
-          <input type="file" id="fileInput" accept=".prn, .txt, .csv, .xlsx" />
+          <input type="file" id="fileInput" accept=".prn, .txt, .csv, .xls, .xlsx" />
           <button onclick="processFile()">
             <i class="fas fa-play"></i>
             Calcular Lanches
