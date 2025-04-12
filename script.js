@@ -25,36 +25,14 @@ SOFTWARE.
 // Controle do estado do filtro
 let isFiltered = false;
 
-// Lista de funcionários (mapeamento de PIS para nomes)
-const pisToNameMap = {
-  12647941701: 'ADRIANA SILVA GERTNER',
-  12835237692: 'ALESSANDRA MACHADO DO NASCIMENTO',
-  13442452790: 'ALINE EMANUELA DE ALMEIDA',
-  21415565971: 'BEATRIZ ALONSO CALZADO',
-  20945568856: 'CARLOS BISCAIA NETO',
-  21234132631: 'ELIZANDRA DE MEIRELES GUILHERME',
-  4254159021: 'ERIKA KATIANE OLIVEIRA RODRIGUES',
-  3924187037: 'GUILHERME DA CRUZ SANTOS',
-  16244765681: 'JENNIFER DANIELLE DE JESUS',
-  16271015930: 'JESSICA BITTENCOURT MORAES',
-  2154541038: 'JONATAN SANTOS SOUZA',
-  27090405520: 'JULIA GRAS DE OLIVEIRA ANTUNES',
-  12776657503: 'JULY ANNA LOUISE GONÇALVES',
-  12604362696: 'KELEN FABIANA SANTOS DO NASCIMENTO',
-  3678545033: 'LUCAS ALEX DE BORBA',
-  58771778004: 'MARIA HELENA DOS SANTOS RAMOS',
-  6443119916: 'MARIA JANETE RITTER',
-  2488909050: 'SILVANA VIDAL ALVES',
-  13024990681: 'VERA LUCIA ROSA',
-  16629319428: 'WATUZI MACEDO SOARES',
-  70798693231: 'KEIYELYN VANESSA SUCRE MORA',
-};
+// Mapeamento dinâmico de PIS para nomes (será preenchido ao processar o arquivo)
+let pisToNameMap = {};
 
 // Configura a exibição do nome do arquivo carregado e limpa os resultados ao trocar de arquivo
 function displayFileName(inputId, displayId) {
-  const fileInput = document.getElementById(inputId); // Elemento de input de arquivo
-  const fileNameDisplay = document.getElementById(displayId); // Elemento onde o nome do arquivo será exibido
-  const resultsDiv = document.getElementById('results'); // Div de resultados
+  const fileInput = document.getElementById(inputId);
+  const fileNameDisplay = document.getElementById(displayId);
+  const resultsDiv = document.getElementById('results');
 
   // Remove listeners antigos para evitar duplicação
   fileInput.removeEventListener('change', handleFileChange);
@@ -62,10 +40,15 @@ function displayFileName(inputId, displayId) {
   // Função interna que atualiza o nome do arquivo e limpa os resultados
   function handleFileChange() {
     if (fileInput.files.length > 0) {
-      fileNameDisplay.textContent = `Arquivo carregado: ${fileInput.files[0].name}`; // Exibe o nome do arquivo
-      resultsDiv.innerHTML = ''; // Limpa os resultados ao carregar um novo arquivo
+      fileNameDisplay.textContent = `Arquivo carregado: ${fileInput.files[0].name}`;
+      resultsDiv.innerHTML = '';
+      toggleFilterButton(false); // Esconde os botões de filtro
+      isFiltered = false; // Redefine o estado do filtro
     } else {
-      fileNameDisplay.textContent = ''; // Limpa o nome se não houver arquivo
+      fileNameDisplay.textContent = '';
+      resultsDiv.innerHTML = '';
+      toggleFilterButton(false); // Esconde os botões de filtro
+      isFiltered = false; // Redefine o estado do filtro
     }
   }
 
@@ -83,40 +66,63 @@ displayFileName('fileInput', 'calculatorFileName');
 
 // Detecta o separador usado no arquivo CSV (vírgula ou ponto e vírgula)
 function detectSeparator(content) {
-  const firstLine = content.split('\n')[0]; // Pega a primeira linha do arquivo
-  if (firstLine.includes(';')) return ';'; // Retorna ponto e vírgula se encontrado
-  if (firstLine.includes(',')) return ','; // Retorna vírgula se encontrada
-  return ';'; // Retorna ponto e vírgula como padrão
+  const firstLine = content.split('\n')[0];
+  if (firstLine.includes(';')) return ';';
+  if (firstLine.includes(',')) return ',';
+  return ';';
+}
+
+// Extrai mapeamento de PIS para nome a partir das colunas D (nome) e G (PIS)
+function buildPisToNameMap(rows) {
+  const newMap = {};
+  rows.forEach((row) => {
+    const name = row[3] != null ? String(row[3]).trim() : null; // Coluna D: Nome do funcionário
+    const pis = row[6] != null ? String(row[6]).trim() : null; // Coluna G: PIS
+    if (pis && name && !newMap[pis]) {
+      newMap[pis] = name;
+    }
+  });
+  return newMap;
 }
 
 // Processa o arquivo carregado e calcula os tempos de lanche
 function processFile() {
-  const fileInput = document.getElementById('fileInput'); // Input de arquivo
-  const file = fileInput.files[0]; // Primeiro arquivo selecionado
-  const loading = document.getElementById('loading'); // Indicador de carregamento
-  const resultsDiv = document.getElementById('results'); // Div para exibir resultados
+  const fileInput = document.getElementById('fileInput');
+  const file = fileInput.files[0];
+  const loading = document.getElementById('loading');
+  const resultsDiv = document.getElementById('results');
 
   if (!file) {
-    alert('Por favor, carregue um arquivo.'); // Alerta se nenhum arquivo for selecionado
+    alert('Por favor, carregue um arquivo.');
     return;
   }
 
-  // Atualiza o nome do arquivo antes de processar
+  // Limpa resultados anteriores e redefine estado
+  resultsDiv.innerHTML = '';
+  toggleFilterButton(false);
+  isFiltered = false;
+
   const fileNameDisplay = document.getElementById('calculatorFileName');
   fileNameDisplay.textContent = `Arquivo carregado: ${file.name}`;
 
-  loading.style.display = 'block'; // Exibe o indicador de carregamento
-  const reader = new FileReader(); // Cria um leitor de arquivos
+  loading.style.display = 'block';
+  const reader = new FileReader();
 
-  // Função chamada quando o arquivo é lido
   reader.onload = function (e) {
-    const content = e.target.result; // Conteúdo do arquivo lido
+    const content = e.target.result;
 
     try {
-      // Processa arquivos .csv
       if (file.name.toLowerCase().endsWith('.csv')) {
-        const separator = detectSeparator(content); // Detecta o separador
-        const rows = content.split('\n').map((row) => row.split(separator)); // Divide o conteúdo em linhas e colunas
+        const separator = detectSeparator(content);
+        const rows = content.split('\n').map((row) => row.split(separator));
+
+        // Construir mapeamento de PIS para nome
+        pisToNameMap = buildPisToNameMap(rows);
+
+        // Verifica se o mapeamento contém dados
+        if (Object.keys(pisToNameMap).length === 0) {
+          throw new Error('Nenhum funcionário encontrado no arquivo. Verifique as colunas de PIS e nome.');
+        }
 
         // Remove colunas desnecessárias e prepara os dados
         const columnsToRemove = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 14, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37];
@@ -124,43 +130,44 @@ function processFile() {
 
         // Converte os dados para o formato esperado
         const convertedData = cleanedRows.flatMap((row) => {
-          const pis = row[0]; // PIS do funcionário
-          const date = row[1] ? row[1].replace(/\s[A-Z]+$/, '') : null; // Data, removendo texto extra
+          const pis = row[0];
+          const date = row[1] ? row[1].replace(/\s[A-Z]+$/, '') : null;
 
-          // Ignora linhas com folga, feriado, falta ou justificado
           if (row.slice(2).some((cell) => /Folga|Feriado|Falta|Justificado/i.test(cell))) {
             return [];
           }
 
-          // Mapeia os horários válidos
           return row
             .slice(2)
             .map((time, index) => {
               if (time) {
-                time = time.replace(/\s*\(I\)/i, ''); // Remove "(I)" dos horários
+                time = time.replace(/\s*\(I\)/i, '');
               }
-              return time ? [pis, date, time] : null; // Retorna array com PIS, data e horário
+              return time ? [pis, date, time] : null;
             })
-            .filter((entry) => entry); // Filtra entradas nulas
+            .filter((entry) => entry);
         });
 
-        // Calcula e exibe os tempos de lanche
         const results = calculateLunchTimes(convertedData);
         displayResults(results);
-      }
-      // Processa arquivos .xlsx ou .xls
-      else if (file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls')) {
-        const data = new Uint8Array(content); // Converte o conteúdo para array de bytes
-        const workbook = XLSX.read(data, { type: 'array' }); // Lê o arquivo Excel (.xlsx ou .xls)
-        const sheetName = workbook.SheetNames[0]; // Pega a primeira planilha
+      } else if (file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls')) {
+        const data = new Uint8Array(content);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }); // Converte para array
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
-        // Remove colunas desnecessárias
+        // Construir mapeamento de PIS para nome
+        pisToNameMap = buildPisToNameMap(rows);
+
+        // Verifica se o mapeamento contém dados
+        if (Object.keys(pisToNameMap).length === 0) {
+          throw new Error('Nenhum funcionário encontrado no arquivo. Verifique as colunas de PIS e nome.');
+        }
+
         const columnsToRemove = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 14, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37];
         const cleanedRows = rows.slice(1).map((row) => row.filter((_, index) => !columnsToRemove.includes(index)));
 
-        // Converte os dados para o formato esperado
         const convertedData = cleanedRows.flatMap((row) => {
           const pis = row[0];
           const date = row[1] ? row[1].replace(/\s[A-Z]+$/, '') : null;
@@ -180,39 +187,40 @@ function processFile() {
             .filter((entry) => entry);
         });
 
-        // Calcula e exibe os tempos de lanche
         const results = calculateLunchTimes(convertedData);
         displayResults(results);
-      }
-      // Processa arquivos .prn ou .txt
-      else if (file.name.toLowerCase().endsWith('.prn') || file.name.toLowerCase().endsWith('.txt')) {
-        const rows = content.split('\n').map((row) => row.split(';')); // Divide em linhas e colunas
-        const results = calculateLunchTimes(rows); // Calcula os tempos
-        displayResults(results); // Exibe os resultados
+      } else if (file.name.toLowerCase().endsWith('.prn') || file.name.toLowerCase().endsWith('.txt')) {
+        const rows = content.split('\n').map((row) => row.split(';'));
+        pisToNameMap = {};
+        const results = calculateLunchTimes(rows);
+        displayResults(results);
       } else {
-        alert('Formato de arquivo não suportado. Use .csv, .xls, .xlsx, .prn ou .txt.'); // Alerta para formatos inválidos
+        alert('Formato de arquivo não suportado. Use .csv, .xls, .xlsx, .prn ou .txt.');
       }
     } catch (error) {
-      console.error('Erro ao processar o arquivo:', error); // Loga o erro no console
-      alert('Erro ao processar o arquivo. Verifique o formato e tente novamente.'); // Alerta o usuário
+      console.error('Erro ao processar o arquivo:', error);
+      alert(`Erro ao processar o arquivo: ${error.message}`);
+      resultsDiv.innerHTML = '';
+      toggleFilterButton(false);
+      isFiltered = false;
+      loading.style.display = 'none';
+      return;
     }
 
-    loading.style.display = 'none'; // Esconde o indicador de carregamento
+    loading.style.display = 'none';
   };
 
-  // Lê o arquivo no formato apropriado
   if (file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls')) {
-    reader.readAsArrayBuffer(file); // Lê como array de bytes para .xlsx e .xls
+    reader.readAsArrayBuffer(file);
   } else {
-    reader.readAsText(file); // Lê como texto para outros formatos
+    reader.readAsText(file);
   }
 }
 
 // Calcula os tempos de lanche com base nos horários fornecidos
 function calculateLunchTimes(rows) {
-  const results = {}; // Objeto para armazenar os horários por PIS e data
+  const results = {};
 
-  // Organiza os dados por PIS e data
   rows.forEach((row) => {
     const [pis, date, time] = row;
     if (!results[pis]) {
@@ -221,71 +229,67 @@ function calculateLunchTimes(rows) {
     if (!results[pis][date]) {
       results[pis][date] = [];
     }
-    results[pis][date].push(time.trim()); // Adiciona o horário à lista
+    results[pis][date].push(time.trim());
   });
 
-  const lunchTimes = {}; // Objeto para os tempos de lanche calculados
+  const lunchTimes = {};
 
-  // Calcula os tempos de lanche para cada PIS e data
   for (const pis in results) {
     lunchTimes[pis] = {};
     for (const date in results[pis]) {
       const times = results[pis][date];
       if (times.length >= 7) {
-        // Verifica se há pelo menos 7 horários (entrada, saída, etc.)
-        const morningLunch = calculateTimeDifference(times[2], times[1]); // Calcula lanche da manhã
-        const afternoonLunch = calculateTimeDifference(times[6], times[5]); // Calcula lanche da tarde
+        const morningLunch = calculateTimeDifference(times[2], times[1]);
+        const afternoonLunch = calculateTimeDifference(times[6], times[5]);
         lunchTimes[pis][date] = { morningLunch, afternoonLunch };
       } else {
-        lunchTimes[pis][date] = { morningLunch: 'Não bateu', afternoonLunch: 'Não bateu' }; // Marca como "Não bateu" se faltarem horários
+        lunchTimes[pis][date] = { morningLunch: 'Não bateu', afternoonLunch: 'Não bateu' };
       }
     }
   }
 
-  return lunchTimes; // Retorna os tempos calculados
+  return lunchTimes;
 }
 
 // Calcula a diferença entre dois horários no formato HH:MM
 function calculateTimeDifference(time1, time2) {
   if (!time1 || !time2 || time1 === '-' || time2 === '-') {
-    return 'Não bateu'; // Retorna "Não bateu" se os horários forem inválidos
+    return 'Não bateu';
   }
 
-  const [h1, m1] = time1.split(':').map(Number); // Divide o primeiro horário em horas e minutos
-  const [h2, m2] = time2.split(':').map(Number); // Divide o segundo horário em horas e minutos
+  const [h1, m1] = time1.split(':').map(Number);
+  const [h2, m2] = time2.split(':').map(Number);
 
-  const totalMinutes1 = h1 * 60 + m1; // Converte o primeiro horário para minutos
-  const totalMinutes2 = h2 * 60 + m2; // Converte o segundo horário para minutos
+  const totalMinutes1 = h1 * 60 + m1;
+  const totalMinutes2 = h2 * 60 + m2;
 
-  const difference = totalMinutes1 - totalMinutes2; // Calcula a diferença em minutos
-  const hours = Math.floor(difference / 60); // Converte para horas
-  const minutes = difference % 60; // Calcula os minutos restantes
+  const difference = totalMinutes1 - totalMinutes2;
+  const hours = Math.floor(difference / 60);
+  const minutes = difference % 60;
 
-  return `${hours}h ${minutes}m`; // Retorna no formato "Xh Ym"
+  return `${hours}h ${minutes}m`;
 }
 
 // Exibe os resultados na interface em tabelas organizadas por PIS
 function displayResults(results) {
-  const resultsDiv = document.getElementById('results'); // Div onde os resultados serão exibidos
-  resultsDiv.innerHTML = ''; // Limpa os resultados anteriores
+  const resultsDiv = document.getElementById('results');
+  resultsDiv.innerHTML = '';
 
-  toggleFilterButton(true); // Exibe os botões de filtro
+  toggleFilterButton(true);
 
-  // Ordena os PIS alfabeticamente pelo nome ou número
   const sortedPisList = Object.keys(results).sort((a, b) => {
     const nameA = pisToNameMap[a] || `PIS: ${a}`;
     const nameB = pisToNameMap[b] || `PIS: ${b}`;
     return nameA.localeCompare(nameB);
   });
 
-  // Cria uma tabela para cada PIS
   for (const pis of sortedPisList) {
-    const name = pisToNameMap[pis] || `PIS: ${pis}`; // Nome ou PIS como fallback
+    const name = pisToNameMap[pis] || `PIS: ${pis}`;
     const pisDiv = document.createElement('div');
-    pisDiv.innerHTML = `<h3>${name}</h3>`; // Adiciona o título com o nome
+    pisDiv.innerHTML = `<h3>${name}</h3>`;
     resultsDiv.appendChild(pisDiv);
 
-    const table = document.createElement('table'); // Cria a tabela
+    const table = document.createElement('table');
     table.innerHTML = `
       <thead>
         <tr>
@@ -298,9 +302,8 @@ function displayResults(results) {
       </tbody>
     `;
 
-    const tbody = table.querySelector('tbody'); // Corpo da tabela
+    const tbody = table.querySelector('tbody');
 
-    // Adiciona uma linha para cada data
     for (const date in results[pis]) {
       const { morningLunch, afternoonLunch } = results[pis][date];
       const row = document.createElement('tr');
@@ -308,125 +311,124 @@ function displayResults(results) {
         <td>${date}</td>
         <td class="${isLunchTooLong(morningLunch) ? 'highlight-red' : ''}">${morningLunch}</td>
         <td class="${isLunchTooLong(afternoonLunch) ? 'highlight-red' : ''}">${afternoonLunch}</td>
-      `; // Destaca em vermelho se o lanche for maior que 15 minutos
+      `;
       tbody.appendChild(row);
     }
 
-    pisDiv.appendChild(table); // Adiciona a tabela ao div do PIS
+    pisDiv.appendChild(table);
   }
 }
 
 // Verifica se o tempo de lanche excede 15 minutos
 function isLunchTooLong(lunchTime) {
-  if (lunchTime === 'Não bateu') return false; // Não destaca se não bateu
+  if (lunchTime === 'Não bateu') return false;
 
-  const [hours, minutes] = lunchTime.split('h '); // Divide em horas e minutos
-  const totalMinutes = parseInt(hours) * 60 + parseInt(minutes.replace('m', '')); // Calcula o total em minutos
+  const [hours, minutes] = lunchTime.split('h ');
+  const totalMinutes = parseInt(hours) * 60 + parseInt(minutes.replace('m', ''));
 
-  return totalMinutes > 15; // Retorna true se maior que 15 minutos
+  return totalMinutes > 15;
 }
 
 // Limpa os resultados exibidos e reseta a interface
 function clearResults() {
-  const resultsDiv = document.getElementById('results'); // Div de resultados
-  const calculatorFileName = document.getElementById('calculatorFileName'); // Nome do arquivo
+  const resultsDiv = document.getElementById('results');
+  const calculatorFileName = document.getElementById('calculatorFileName');
+  const fileInput = document.getElementById('fileInput');
 
-  resultsDiv.innerHTML = ''; // Limpa os resultados
-  toggleFilterButton(false); // Esconde os botões de filtro
-  calculatorFileName.textContent = ''; // Limpa o nome do arquivo
-  isFiltered = false; // Reseta o estado do filtro
+  resultsDiv.innerHTML = '';
+  toggleFilterButton(false);
+  calculatorFileName.textContent = '';
+  isFiltered = false;
+  fileInput.value = ''; // Limpa o input de arquivo
 }
 
 // Exporta os resultados para um arquivo CSV
 function exportToCSV() {
-  const resultsDiv = document.getElementById('results'); // Div de resultados
-  const tables = resultsDiv.querySelectorAll('table'); // Todas as tabelas exibidas
+  const resultsDiv = document.getElementById('results');
+  const tables = resultsDiv.querySelectorAll('table');
 
   if (tables.length === 0) {
-    alert('Nenhum resultado para exportar.'); // Alerta se não houver resultados
+    alert('Nenhum resultado para exportar.');
     return;
   }
 
-  let csvContent = 'PIS,Data,Lanche da Manhã,Lanche da Tarde\n'; // Cabeçalho do CSV
+  let csvContent = 'Nome,Data,Lanche da Manhã,Lanche da Tarde\n';
 
-  // Itera sobre as tabelas e linhas para construir o conteúdo do CSV
   tables.forEach((table) => {
-    const pis = table.previousElementSibling.textContent.replace('PIS: ', ''); // Pega o PIS/nome
+    const name = table.previousElementSibling.textContent;
     const rows = table.querySelectorAll('tbody tr');
 
     rows.forEach((row) => {
       const [date, morningLunch, afternoonLunch] = row.querySelectorAll('td');
-      csvContent += `${pis},${date.textContent},${morningLunch.textContent},${afternoonLunch.textContent}\n`; // Adiciona a linha ao CSV
+      csvContent += `"${name}",${date.textContent},${morningLunch.textContent},${afternoonLunch.textContent}\n`;
     });
   });
 
-  // Cria e faz o download do arquivo CSV
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'lanches.csv'; // Nome do arquivo baixado
+  link.download = 'lanches.csv';
   link.click();
-  URL.revokeObjectURL(url); // Libera a URL criada
+  URL.revokeObjectURL(url);
 }
 
 // Alterna a visibilidade dos botões de filtro
 function toggleFilterButton(show) {
-  const filterButtonContainer = document.getElementById('filterButtonContainer'); // Container dos botões de filtro
-  filterButtonContainer.style.display = show ? 'block' : 'none'; // Exibe ou esconde conforme o parâmetro
+  const filterButtonContainer = document.getElementById('filterButtonContainer');
+  filterButtonContainer.style.display = show ? 'block' : 'none';
 }
 
 // Filtra os lanches exibidos para mostrar apenas os que excedem 15 minutos
 function filterAbove15() {
-  const tables = document.querySelectorAll('table'); // Todas as tabelas exibidas
-  let hasResults = false; // Flag para verificar se há resultados filtrados
-  isFiltered = true; // Marca que o filtro está ativo
+  const tables = document.querySelectorAll('table');
+  let hasResults = false;
+  isFiltered = true;
 
   tables.forEach((table) => {
-    const pisDiv = table.previousElementSibling; // Div do PIS/nome
-    let hasVisibleRows = false; // Flag para verificar se há linhas visíveis
-    const rows = table.querySelectorAll('tbody tr'); // Linhas da tabela
+    const pisDiv = table.previousElementSibling;
+    let hasVisibleRows = false;
+    const rows = table.querySelectorAll('tbody tr');
 
     rows.forEach((row) => {
-      const morningCell = row.querySelector('td:nth-child(2)'); // Célula do lanche da manhã
-      const afternoonCell = row.querySelector('td:nth-child(3)'); // Célula do lanche da tarde
+      const morningCell = row.querySelector('td:nth-child(2)');
+      const afternoonCell = row.querySelector('td:nth-child(3)');
 
-      const showRow = isLunchTooLong(morningCell.textContent) || isLunchTooLong(afternoonCell.textContent); // Verifica se algum lanche excede 15 minutos
+      const showRow = isLunchTooLong(morningCell.textContent) || isLunchTooLong(afternoonCell.textContent);
 
-      row.style.display = showRow ? '' : 'none'; // Mostra ou esconde a linha
+      row.style.display = showRow ? '' : 'none';
       if (showRow) {
         hasVisibleRows = true;
         hasResults = true;
       }
     });
 
-    // Mostra ou esconde a tabela e o título com base nas linhas visíveis
     pisDiv.style.display = hasVisibleRows ? '' : 'none';
     table.style.display = hasVisibleRows ? '' : 'none';
   });
 
   if (!hasResults) {
-    alert('Nenhum lanche acima de 15 minutos encontrado.'); // Alerta se não houver resultados
-    clearFilter(); // Limpa o filtro
+    alert('Nenhum lanche acima de 15 minutos encontrado.');
+    clearFilter();
   }
 }
 
 // Remove o filtro e restaura a exibição de todos os resultados
 function clearFilter() {
-  if (!isFiltered) return; // Sai se o filtro não estiver ativo
+  if (!isFiltered) return;
 
-  const tables = document.querySelectorAll('table'); // Todas as tabelas exibidas
+  const tables = document.querySelectorAll('table');
 
   tables.forEach((table) => {
-    const pisDiv = table.previousElementSibling; // Div do PIS/nome
-    pisDiv.style.display = ''; // Restaura a visibilidade do título
-    table.style.display = ''; // Restaura a visibilidade da tabela
+    const pisDiv = table.previousElementSibling;
+    pisDiv.style.display = '';
+    table.style.display = '';
 
-    const rows = table.querySelectorAll('tbody tr'); // Linhas da tabela
+    const rows = table.querySelectorAll('tbody tr');
     rows.forEach((row) => {
-      row.style.display = ''; // Restaura a visibilidade de todas as linhas
+      row.style.display = '';
     });
   });
 
-  isFiltered = false; // Reseta o estado do filtro
+  isFiltered = false;
 }
