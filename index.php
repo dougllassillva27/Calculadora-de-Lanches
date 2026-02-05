@@ -31,10 +31,28 @@ $base = '/Calculadora-de-Lanches'; // ajuste para o caminho visível no navegado
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Meta Tags Básicas -->
     <meta name="description" content="Calculadora de Lanches" />
-    <meta name="keywords" content="converter, .csv, lanche, horas, ponto" />
+    <meta name="keywords" content="converter, .csv, lanche, horas, ponto," />
     <meta name="author" content="Douglas Silva" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:title" content="Calculadora de Lanches" />
+    <meta property="og:description" content="Calculadora de Lanches" />
+    <meta property="og:url" content="https://dougllassillva27.com.br/Calculadora-de-Lanches/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://dougllassillva27.com.br/logo-social-share.webp" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Calculadora de Lanches" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Calculadora de Lanches" />
+    <meta name="twitter:description" content="Calculadora de Lanches" />
+    <meta name="twitter:image" content="https://dougllassillva27.com.br/logo-social-share.webp" />
+
     <title>Calculadora de Lanches</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico?v=1" />
     <link rel="stylesheet" href="<?= versao("$base/styles.css") ?>">
