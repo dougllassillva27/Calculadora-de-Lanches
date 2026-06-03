@@ -1,0 +1,292 @@
+/*
+MIT License
+
+Copyright (c) 2025 Douglas Silva
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  color: #333;
+}
+
+.container {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 1000px;
+  width: 100%;
+}
+
+h1 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #007bff;
+}
+
+.converter-section,
+.calculator-section {
+  margin-bottom: 40px;
+}
+
+.upload-section {
+  margin-bottom: 20px;
+}
+
+.custom-file-upload {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.custom-file-upload:hover {
+  background-color: #0056b3;
+}
+
+input[type='file'] {
+  display: none; /* Mantém o input de arquivo oculto */
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.loading {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #007bff;
+}
+
+.results {
+  margin-top: 20px;
+  text-align: left;
+  width: 100%;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+th,
+td {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+th {
+  background-color: #007bff;
+  color: #fff;
+  font-weight: bold;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+  transition: background-color 0.3s ease;
+}
+
+.actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-clear {
+  background-color: #dc3545;
+}
+
+.btn-clear:hover {
+  background-color: #c82333;
+}
+
+.btn-export {
+  background-color: #28a745;
+}
+
+.btn-export:hover {
+  background-color: #218838;
+}
+
+.highlight-red {
+  background-color: #ffcccc; /* Fundo vermelho claro */
+  color: #cc0000; /* Texto vermelho escuro */
+  font-weight: bold;
+}
+
+.file-name {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #555;
+  font-style: italic;
+}
+/* Estilo do footer */
+#footer {
+  background-color: none;
+  text-align: center;
+  padding: 5px;
+  width: 97%;
+  height: 25px;
+  font-size: 18px;
+  position: relative;
+  margin-top: auto; /* Garante que o footer fique no final quando não houver resultados */
+}
+footer a {
+  text-decoration: none;
+  color: #007bff;
+}
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* Estilos para dispositivos móveis */
+@media (max-width: 600px) {
+  .container {
+    padding: 15px;
+    max-width: 95%; /* Reduz a largura máxima para evitar estouro */
+    margin: 0 auto; /* Centraliza o container */
+    box-sizing: border-box; /* Garante que o padding não aumente a largura total */
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  .upload-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .custom-file-upload,
+  button {
+    width: 100%; /* Botões ocupam toda a largura */
+    justify-content: center;
+    box-sizing: border-box; /* Garante que o padding não aumente a largura */
+  }
+
+  #filterButtonContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px; /* Adiciona espaço abaixo do botão de filtro */
+  }
+
+  #filterButtonContainer button {
+    width: 100%;
+    margin-left: 0 !important;
+  }
+
+  .btn-filter,
+  .btn-clear-filter {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+    margin-top: 10px; /* Adiciona espaço acima do botão limpar filtro */
+  }
+
+  .actions {
+    flex-direction: column; /* Botões de ações um abaixo do outro */
+    gap: 10px;
+  }
+
+  table {
+    font-size: 14px; /* Reduz o tamanho da fonte da tabela */
+  }
+
+  th,
+  td {
+    padding: 8px; /* Reduz o padding das células */
+  }
+}
+.btn-filter {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.btn-filter:hover {
+  background-color: #f57c00;
+}
+
+.highlight-red {
+  background-color: #ffcdd2;
+  font-weight: bold;
+}
+.btn-clear-filter {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.btn-clear-filter:hover {
+  background-color: #f57c00;
+}
