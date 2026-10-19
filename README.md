@@ -5,6 +5,8 @@
 
 Aplicação web para cálculo automático de intervalos de refeição (lanche da manhã e tarde) a partir de registros de ponto eletrônicos. Processa arquivos `.prn`, `.txt`, `.csv` ou `.xlsx` exportados por sistemas de ponto e gera relatórios detalhados por funcionário.
 
+**Acesso:** https://calculadora-de-lanches.dougllassillva.com.br
+
 ## Funcionalidades
 
 - **Processamento multi-formato**: importa arquivos `.prn`, `.txt`, `.csv` e `.xlsx`
@@ -59,17 +61,28 @@ Arquivos com registros de "Folga", "Feriado", "Falta" ou "Justificado" são auto
 
 ## Scripts Disponíveis
 
-```powershell
-# Setup inicial (ativa hooks do Git)
-./setup.ps1          # Windows PowerShell
-bash setup.sh        # Linux/macOS
-
+```bash
 # Qualidade de código
-npm run lint         # ESLint + Prettier (se configurado)
 ruff check .         # Linter Python
 ruff format .        # Formatação Python
-pytest               # Testes unitários
+pytest               # Testes unitários (26/26)
 ```
+
+## Deploy
+
+### Produção (VPS Docker — atual)
+
+Container `calculadora-lanches`: nginx 1.27-alpine servindo os arquivos estáticos, publicado apenas em `127.0.0.1:8302`. Nginx host faz proxy de `calculadora-de-lanches.dougllassillva.com.br` com Let's Encrypt e Cloudflare proxied.
+
+```bash
+cd /root/dodo/aplicacoes/calculadoraLanches
+git pull
+docker compose up -d --build
+```
+
+### Legado (Netlify)
+
+O deploy original em `calculadora-de-lanches.netlify.app` servia os mesmos arquivos estáticos. Está em descontinuação.
 
 ## Estrutura de Arquivos
 
@@ -82,14 +95,15 @@ calculadora-de-lanches/
 ├── README.md               # Este arquivo
 ├── LICENSE                 # Licença MIT
 ├── requirements.txt        # Dependências Python (qualidade/testes)
-├── setup.ps1               # Script de setup (Windows)
-├── setup.sh                # Script de setup (Linux/macOS)
+├── Dockerfile              # Imagem nginx com os arquivos estáticos
+├── docker-compose.yml      # Orquestração do container
+├── nginx-spa.conf          # Fallback SPA no nginx do container
 ├── .eslintrc.json          # Configuração ESLint
 ├── .prettierrc             # Configuração Prettier
 ├── .ruff.toml              # Configuração Ruff (Python)
+├── .githooks/              # Hooks do Git (validados por tests/)
 ├── tests/                  # Suíte de testes automatizados
-├── docs/                   # Documentação técnica
-└── _contexto-ia/           # Contexto para agentes de IA
+└── docs/                   # Documentação técnica
 ```
 
 ## Qualidade e Boas Práticas
@@ -104,11 +118,10 @@ Este projeto segue padrões rigorosos de desenvolvimento:
 
 ## Contribuição
 
-1. Execute `./setup.ps1` ou `bash setup.sh` para ativar os hooks
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
-3. Adicione testes para novas funcionalidades
-4. Commit seguindo Conventional Commits (`git commit -m 'feat: adiciona filtro por data'`)
-5. Push e abra um Pull Request
+1. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
+2. Adicione testes para novas funcionalidades
+3. Commit seguindo Conventional Commits (`git commit -m 'feat: adiciona filtro por data'`)
+4. Push e abra um Pull Request
 
 ## Autor
 

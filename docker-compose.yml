@@ -1,0 +1,7 @@
+services:
+  calculadora-lanches:
+    build: .
+    container_name: calculadora-lanches
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8302:80"
