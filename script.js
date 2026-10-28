@@ -286,7 +286,9 @@ function displayResults(results) {
   for (const pis of sortedPisList) {
     const name = pisToNameMap[pis] || `PIS: ${pis}`;
     const pisDiv = document.createElement('div');
-    pisDiv.innerHTML = `<h3>${name}</h3>`;
+    const pisHeading = document.createElement('h3');
+    pisHeading.textContent = name;
+    pisDiv.appendChild(pisHeading);
     resultsDiv.appendChild(pisDiv);
 
     const table = document.createElement('table');
@@ -307,11 +309,17 @@ function displayResults(results) {
     for (const date in results[pis]) {
       const { morningLunch, afternoonLunch } = results[pis][date];
       const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${date}</td>
-        <td class="${isLunchTooLong(morningLunch) ? 'highlight-red' : ''}">${morningLunch}</td>
-        <td class="${isLunchTooLong(afternoonLunch) ? 'highlight-red' : ''}">${afternoonLunch}</td>
-      `;
+      const dateCell = document.createElement('td');
+      dateCell.textContent = date;
+      row.appendChild(dateCell);
+      const morningCell = document.createElement('td');
+      morningCell.textContent = morningLunch;
+      if (isLunchTooLong(morningLunch)) morningCell.classList.add('highlight-red');
+      row.appendChild(morningCell);
+      const afternoonCell = document.createElement('td');
+      afternoonCell.textContent = afternoonLunch;
+      if (isLunchTooLong(afternoonLunch)) afternoonCell.classList.add('highlight-red');
+      row.appendChild(afternoonCell);
       tbody.appendChild(row);
     }
 
