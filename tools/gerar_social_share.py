@@ -5,6 +5,7 @@ Uso: python3 tools/gerar_social_share.py
 Saida: public/social-share.webp
 """
 import os
+
 from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1200, 630
@@ -46,8 +47,10 @@ draw.line((cx, cy, cx + 26, cy + 14), fill=ACCENT, width=8)
 x = 260
 draw.text((x, 210), "Calculadora", font=title_font, fill=TEXT)
 draw.text((x, 288), "de Lanches", font=title_font, fill=ACCENT)
-draw.text((x, 390), "Intervalos de refeicao a partir do ponto eletronico", font=sub_font, fill=MUTED)
-draw.text((x, 440), "Importa .prn, .txt, .csv ou .xlsx  -  exporta CSV", font=small_font, fill=MUTED)
+draw.text((x, 390), "Intervalos de refeicao a partir do ponto eletronico",
+          font=sub_font, fill=MUTED)
+draw.text((x, 440), "Importa .prn, .txt, .csv ou .xlsx  -  exporta CSV",
+          font=small_font, fill=MUTED)
 
 # Rodape
 draw.text((x, 520), "dougllassillva.com.br", font=brand_font, fill=ACCENT)
